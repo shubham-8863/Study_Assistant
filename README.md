@@ -29,10 +29,3 @@ Users can ask questions and choose between different learning personalities depe
 4. The question is sent to Gemini 2.5 Flash.
 5. The generated explanation is displayed in the interface.
 
-## 🚀 Run Locally
-
-Clone the repository:
-
-```bash
-git clone <your-repository-url>
-cd <project-folder>
