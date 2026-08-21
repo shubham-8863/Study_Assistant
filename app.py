@@ -4,9 +4,16 @@ from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
+# ==============================
+# ENVIRONMENT
+# ==============================
+
 load_dotenv()
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY is not set")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
@@ -16,18 +23,37 @@ client = genai.Client(api_key=GEMINI_API_KEY)
 # ==============================
 
 personalities = {
-    "Friendly":
-    """You are a friendly, enthusiastic, and highly encouraging Study Assistant.
-    Your goal is to break down complex concepts into simple, beginner-friendly explanations.
-    Use analogies and real-world examples that beginners can relate to.
-    Always ask a follow-up question to check understanding.""",
+    "Friendly": """
+You are a friendly, enthusiastic, and highly encouraging Study Assistant.
 
-    "Academic":
-    """You are a strictly academic, highly detailed, and professional university Professor.
-    Use precise, formal terminology and structure your response clearly.
-    Break down complex concepts into simple, beginner-friendly explanations.
-    Use analogies and real-world examples when helpful.
-    Always ask a follow-up question to check understanding."""
+Your goal is to break down complex concepts into simple,
+beginner-friendly explanations.
+
+Use:
+- Simple language
+- Analogies
+- Real-world examples
+- Clear step-by-step explanations
+
+Always ask a follow-up question to check understanding.
+""",
+
+    "Academic": """
+You are a strictly academic, highly detailed, and professional
+university Professor.
+
+Use:
+- Precise terminology
+- Structured explanations
+- Important definitions
+- Relevant examples
+- Technical depth where appropriate
+
+Your goal is still to make complex concepts understandable
+to a beginner.
+
+Always ask a follow-up question to check understanding.
+"""
 }
 
 
@@ -38,23 +64,37 @@ personalities = {
 def study_assistant(question, persona):
 
     if not question or not question.strip():
-        return "Please enter a question first. 😊"
+        return "Please enter a question first. 📚"
 
-    system_prompt = personalities[persona]
-
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-
-        config=types.GenerateContentConfig(
-            system_instruction=system_prompt,
-            temperature=0.4,
-            max_output_tokens=2000
-        ),
-
-        contents=question
+    system_prompt = personalities.get(
+        persona,
+        personalities["Friendly"]
     )
 
-    return response.text
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+
+            config=types.GenerateContentConfig(
+                system_instruction=system_prompt,
+                temperature=0.4,
+                max_output_tokens=2000
+            ),
+
+            contents=question
+        )
+
+        return response.text
+
+    except Exception as e:
+        return f"""
+Something went wrong while generating the answer.
+
+Please try again in a moment.
+
+Error:
+{str(e)}
+"""
 
 
 # ==============================
@@ -63,9 +103,9 @@ def study_assistant(question, persona):
 
 custom_css = """
 
-/* =========================
+/* ==============================
    GLOBAL
-   ========================= */
+   ============================== */
 
 body {
     margin: 0;
@@ -90,9 +130,9 @@ body {
 }
 
 
-/* =========================
+/* ==============================
    HERO
-   ========================= */
+   ============================== */
 
 .hero {
     min-height: 360px;
@@ -144,9 +184,9 @@ body {
 }
 
 
-/* =========================
+/* ==============================
    BADGE
-   ========================= */
+   ============================== */
 
 .badge {
     background: rgba(255, 255, 255, 0.15);
@@ -165,38 +205,32 @@ body {
 }
 
 
-/* =========================
-   CARDS
-   ========================= */
+/* ==============================
+   SECTION HEADINGS
+   ============================== */
 
-.card {
-    background: rgba(255, 255, 255, 0.92);
+.section-title {
+    color: #143026;
 
-    border-radius: 22px;
+    font-size: 25px;
 
-    padding: 24px;
+    font-weight: 750;
 
-    border: 1px solid rgba(20, 48, 38, 0.08);
-
-    box-shadow:
-        0 10px 30px rgba(0, 0, 0, 0.07);
-
-    backdrop-filter: blur(10px);
-
-    transition: 0.25s ease;
+    margin-bottom: 5px;
 }
 
-.card:hover {
-    transform: translateY(-3px);
+.section-subtitle {
+    color: #6b7280;
 
-    box-shadow:
-        0 15px 40px rgba(0, 0, 0, 0.10);
+    margin-top: 0;
+
+    font-size: 15px;
 }
 
 
-/* =========================
-   TEXT INPUT
-   ========================= */
+/* ==============================
+   INPUT
+   ============================== */
 
 textarea {
     border-radius: 16px !important;
@@ -220,9 +254,9 @@ textarea:focus {
 }
 
 
-/* =========================
+/* ==============================
    BUTTON
-   ========================= */
+   ============================== */
 
 .primary-btn {
     border-radius: 14px !important;
@@ -258,9 +292,9 @@ textarea:focus {
 }
 
 
-/* =========================
+/* ==============================
    RESPONSE
-   ========================= */
+   ============================== */
 
 .response-box textarea {
     background: #ffffff !important;
@@ -273,9 +307,9 @@ textarea:focus {
 }
 
 
-/* =========================
+/* ==============================
    PERSONALITY
-   ========================= */
+   ============================== */
 
 .personality-box {
     background: #f5f2e9;
@@ -286,24 +320,47 @@ textarea:focus {
 }
 
 
-/* =========================
+/* ==============================
+   EXAMPLES
+   ============================== */
+
+.examples-area {
+    margin-top: 35px;
+}
+
+.example-title {
+    color: #143026;
+
+    font-size: 24px;
+
+    font-weight: 750;
+}
+
+
+/* ==============================
    FOOTER
-   ========================= */
+   ============================== */
 
 .footer {
     text-align: center;
 
-    padding: 30px;
+    padding: 35px 20px;
 
     color: #6b7280;
 
     font-size: 14px;
 }
 
+.footer strong {
+    color: #143026;
 
-/* =========================
+    font-size: 16px;
+}
+
+
+/* ==============================
    MOBILE
-   ========================= */
+   ============================== */
 
 @media (max-width: 700px) {
 
@@ -313,8 +370,13 @@ textarea:focus {
 
     .hero {
         min-height: 300px;
+
+        padding: 35px 20px;
     }
 
+    .hero p {
+        font-size: 16px !important;
+    }
 }
 
 """
@@ -334,17 +396,14 @@ theme = gr.themes.Soft(
 
 
 # ==============================
-# BUILD APP
+# BUILD APPLICATION
 # ==============================
 
-with gr.Blocks(
-    theme=theme,
-    css=custom_css
-) as demo:
+with gr.Blocks() as demo:
 
-    # ==========================
+    # ==============================
     # HERO
-    # ==========================
+    # ==============================
 
     gr.HTML(
         """
@@ -354,7 +413,9 @@ with gr.Blocks(
                 ✨ AI-Powered Learning Companion
             </div>
 
-            <h1>📚 StudySpace AI</h1>
+            <h1>
+                📚 StudySpace AI
+            </h1>
 
             <p>
                 Your personal AI study companion.
@@ -367,15 +428,15 @@ with gr.Blocks(
     )
 
 
-    # ==========================
+    # ==============================
     # MAIN AREA
-    # ==========================
+    # ==============================
 
     with gr.Row(equal_height=False):
 
-        # ----------------------
-        # LEFT
-        # ----------------------
+        # ==============================
+        # LEFT SIDE
+        # ==============================
 
         with gr.Column(scale=1):
 
@@ -385,17 +446,11 @@ with gr.Blocks(
                     padding: 10px 5px 15px 5px;
                 ">
 
-                    <h2 style="
-                        margin-bottom: 5px;
-                        color: #143026;
-                    ">
+                    <h2 class="section-title">
                         🎯 Start Learning
                     </h2>
 
-                    <p style="
-                        color: #6b7280;
-                        margin-top: 0;
-                    ">
+                    <p class="section-subtitle">
                         What would you like to understand today?
                     </p>
 
@@ -440,9 +495,9 @@ with gr.Blocks(
             )
 
 
-        # ----------------------
-        # RIGHT
-        # ----------------------
+        # ==============================
+        # RIGHT SIDE
+        # ==============================
 
         with gr.Column(scale=1):
 
@@ -452,17 +507,11 @@ with gr.Blocks(
                     padding: 10px 5px 15px 5px;
                 ">
 
-                    <h2 style="
-                        margin-bottom: 5px;
-                        color: #143026;
-                    ">
+                    <h2 class="section-title">
                         💡 Your Explanation
                     </h2>
 
-                    <p style="
-                        color: #6b7280;
-                        margin-top: 0;
-                    ">
+                    <p class="section-subtitle">
                         Your personalized answer will appear here.
                     </p>
 
@@ -481,24 +530,19 @@ with gr.Blocks(
                     "will appear here..."
                 ),
 
-                show_copy_button=True,
-
                 elem_classes=["response-box"]
             )
 
 
-    # ==========================
+    # ==============================
     # EXAMPLES
-    # ==========================
+    # ==============================
 
     gr.HTML(
         """
-        <div style="
-            margin-top: 35px;
-            margin-bottom: 15px;
-        ">
+        <div class="examples-area">
 
-            <h2 style="color: #143026;">
+            <h2 class="example-title">
                 💭 Try asking...
             </h2>
 
@@ -519,15 +563,17 @@ with gr.Blocks(
     )
 
 
-    # ==========================
+    # ==============================
     # FOOTER
-    # ==========================
+    # ==============================
 
     gr.HTML(
         """
         <div class="footer">
 
-            <strong>StudySpace AI</strong>
+            <strong>
+                StudySpace AI
+            </strong>
 
             <br>
 
@@ -542,9 +588,9 @@ with gr.Blocks(
     )
 
 
-    # ==========================
+    # ==============================
     # BUTTON ACTION
-    # ==========================
+    # ==============================
 
     ask_button.click(
         fn=study_assistant,
@@ -565,5 +611,7 @@ with gr.Blocks(
 demo.launch(
     server_name="0.0.0.0",
     server_port=int(os.environ.get("PORT", 7860)),
-    share=False
+    share=False,
+    theme=theme,
+    css=custom_css
 )
