@@ -50,4 +50,9 @@ demo = gr.Interface(
     description="Ask a question and get an answer from your AI study assistant with a chosen personality."
 )
 
-demo.launch(debug=True, share=True)
+PORT = int(os.environ.get("PORT", 7860))
+
+demo.launch(
+    server_name="0.0.0.0",
+    server_port=PORT
+)
