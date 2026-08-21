@@ -29,3 +29,12 @@ Users can ask questions and choose between different learning personalities depe
 4. The question is sent to Gemini 2.5 Flash.
 5. The generated explanation is displayed in the interface.
 
+## 🚀 Live Demo
+
+[Try the Live Demo](https://study-assistant-5-7pt5.onrender.com)
+
+## Features
+- Feature 1
+- Feature 2
+- Feature 3
+
